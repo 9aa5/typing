@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+   <script src='typing.js' type='text/javascript'></script>
+   <style>
+      body {
+         /*
+         background-image: url('typing.jpg');
+         */
+         background-repeat: no-repeat;
+         background-size: cover stretch;
+      }
+      .container {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+      }
+      .textbox {
+         width:150px;
+         height:150px;
+         border-radius: 25px;
+         font-size: 110px;
+         padding: 0px;
+         border: 2px solid #73AD21;
+         transform: translateY(-50%); 
+         text-align: center;
+         vertical-align: middle;
+         line-height: 130px;
+         color: #00008B;
+         background:#FFFFE0;
+      }
+      .letterbox {
+         color: #00008B;
+      }
+      @keyframes shake {
+          0% { transform: translate(1px, 1px) rotate(0deg); }
+          10% { transform: translate(-1px, -2px) rotate(-1deg); }
+          20% { transform: translate(-3px, 0px) rotate(1deg); }
+          30% { transform: translate(3px, 2px) rotate(0deg); }
+          40% { transform: translate(1px, -1px) rotate(1deg); }
+          50% { transform: translate(-1px, 2px) rotate(-1deg); }
+          60% { transform: translate(-3px, 1px) rotate(0deg); }
+          70% { transform: translate(3px, 1px) rotate(-1deg); }
+          80% { transform: translate(-1px, -1px) rotate(1deg); }
+          90% { transform: translate(1px, 2px) rotate(0deg); }
+          100% { transform: translate(1px, -2px) rotate(-1deg); }
+      }
+      .shakenow {
+          /* Start the shake animation and make the animation last for 0.5 seconds */
+          animation: shake 0.3s; 
+      }
+      .visible {
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.1s linear;
+      }
+      .hidden {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 0.1s, opacity 0.1s linear;
+      }
+   </style>
+   <body onload='start()'>
+      <div class='container'>
+         <div class='textbox'>
+            <div id='target_box'>s</div>
+         </div>
+      </div>
+      <div id='stats' style='background-color: yellow;'><div>
+   </body>
+</html>
