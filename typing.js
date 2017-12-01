@@ -13,6 +13,18 @@ function get_a_char() {
   return text;
 }
 
+function get_on_screen_text() {
+   var text = '';
+   var target_box = document.getElementById('target_box');
+   var children = target_box.childNodes;
+   for (var i = 0; i < children.length; i++) {
+      if (children[i].classList && children[i].classList.contains('letterbox')) {
+         text += children[i].textContent;
+      }
+   }
+   return text;
+}
+
 function display_stats(is_correct) {
    var stats, percent;
    total_press += 1;
@@ -25,13 +37,31 @@ function display_stats(is_correct) {
    elem.textContent = stats;
 }
 
+function set_new_text(new_text) {
+   var target_box = document.getElementById('target_box');
+   var cur_pos = 0;
+   var cur_char;
+   var letter_box;
+   while (target_box.firstChild) {
+          target_box.removeChild(target_box.firstChild);
+   }
+   while (cur_pos < new_text.length) {
+      cur_char = new_text[cur_pos];
+      letter_box = document.createElement('DIV');
+      letter_box.textContent = cur_char;
+      letter_box.classList.add('letterbox');
+      target_box.appendChild(letter_box);
+      cur_pos += 1;
+   }
+}
+
 function display_hit_effect() {
    var new_char = get_a_char();
    var elem = document.getElementById('target_box');
    elem.classList.add('hidden');
    setTimeout(function () {
       elem.classList.remove('hidden');
-      elem.textContent = new_char;
+      set_new_text(new_char);
       elem.classList.add('visible');
    }, 100); // Consistent with the style duration.
 }
@@ -46,12 +76,16 @@ function display_miss_effect() {
 
 function verify_key(char_pressed) {
    var elem = document.getElementById('target_box');
-   var on_screen = elem.textContent;
+   var on_screen = get_on_screen_text();
    console.log('onscreen:' + on_screen);
-   if (char_pressed !== on_screen) {
+   if (char_pressed !== on_screen[cur_cursor]) {
       display_miss_effect();
    } else {
       display_hit_effect();
+      cur_cursor += 1;
+      if (cur_cursor >= on_screen.length) {
+         cur_cursor = 0;
+      }
    }
    display_stats(char_pressed === on_screen);
 }
