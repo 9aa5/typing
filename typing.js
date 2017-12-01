@@ -3,6 +3,29 @@ var total_press = 0;
 var correct_press = 0;
 var cur_cursor = 0;
 
+function get_combo() {
+   var possible = ['of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we',
+       'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no',
+       'us', 'am'];
+   possible.concat(['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any',
+            'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has',
+            'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way',
+            'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use']);
+   possible.concat(['that', 'with', 'have', 'this', 'will', 'your', 'from', 'they',
+            'know', 'want', 'been', 'good', 'much', 'some', 'time']);
+   text = possible[Math.floor(Math.random() * possible.length)];
+   return text;
+}
+
+function get_new_text() {
+   var train_single_letter = document.getElementById('train_single_letter').checked;
+   if (train_single_letter) {
+      return get_a_char();
+   } else {
+      return get_combo();
+   }
+}
+
 function get_a_char() {
   var text = "";
   var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -56,7 +79,7 @@ function set_new_text(new_text) {
 }
 
 function display_hit_effect() {
-   var new_char = get_a_char();
+   var new_char = get_new_text();
    var elem = document.getElementById('target_box');
    elem.classList.add('hidden');
    setTimeout(function () {
