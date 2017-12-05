@@ -148,16 +148,57 @@ function verify_key(char_pressed) {
    }
 }
 
+function get_key_char(evt) {
+   var char_pressed;
+   var key_code_table = {
+      188: [',', '<'],
+      190: ['.', '>'],
+      191: ['/', '?'],
+      192: ['`', '~'],
+      219: ['[', '{'],
+      220: ['\\', '|'],
+      221: [']', '}'],
+      222: ["'", '"'],
+      186: [';', ':'],
+      187: ['=', '+'],
+      189: ['-', '_']
+   };
+   var shift_num = [')', '!', '@', '#', '$', '%', '^', '&', '*', '('];
+   var char_pressed = undefined;
+   var log_filter = [16, 17, 18]; // ctrl, alt, shift
+   if (log_filter.indexOf(evt.keyCode) === -1) {
+      console.log('Key code is:' + evt.keyCode);
+   } else {
+      return;
+   }
+   if (evt.keyCode === 32) {
+      char_pressed = ' ';
+   } else if (evt.keyCode >= 65 && evt.keyCode <= 90) { // A-Z
+      char_pressed = String.fromCharCode(evt.keyCode);
+      if (!evt.shiftKey) {
+         char_pressed = char_pressed.toLowerCase();
+      }
+   } else if (evt.keyCode >= 48 && evt.keyCode <= 57) {
+      if (!evt.shiftKey) {
+         char_pressed = String.fromCharCode(evt.keyCode);
+      } else {
+         char_pressed = shift_num[evt.keyCode - 48];
+      }
+   } else if (key_code_table[evt.keyCode]) {
+      if (!evt.shiftKey) {
+         char_pressed = key_code_table[evt.keyCode][0];
+      } else {
+         char_pressed = key_code_table[evt.keyCode][1];
+      }
+   }
+   return char_pressed;
+}
 function check_key(evt) {
-   var char_pressed = String.fromCharCode(evt.keyCode);
-   console.log('Keydown:' + char_pressed);
-   if (char_pressed < 'A' || char_pressed > 'Z') {
-      return undefined;
+   var char_pressed = get_key_char(evt);
+   if (!char_pressed) {
+      return;
    }
-   if (!evt.shiftKey) {
-      char_pressed = char_pressed.toLowerCase();
-   }
-   console.log('KeyChar:' + char_pressed);
+   console.log('char:' + char_pressed);
    verify_key(char_pressed);
 }
 
