@@ -56,20 +56,32 @@
         opacity: 0;
         transition: visibility 0s 0.1s, opacity 0.1s linear;
       }
+      .options_panel {
+         background-color: white;
+         left: 10px;
+         top: 20px;
+         width: 400px;
+      }
    </style>
    <body onload='start()'>
+      <div class='options_panel'>
+         <span>Training mode:</span>
+         <select id='mode_selection' name='mode'>
+            <option disabled value="user_specified_letters">Let me specify letters</option>
+            <option value="all_letters">One letter at a time</option>
+            <option disabled value="letters_with_space">One letter with space</option>
+            <option value="words">One word at a time</option>
+            <option disabled value="sentences">One sentence at a time</option>
+         </select>
+      </div>
       <div class='container'>
          <div class='textbox'>
             <div id='target_box'>
-               <span class='letterbox'>s</div>
+               <span class='letterbox'></div>
             </div>
             <div id='stats' style='background-color: yellow;'></div>
          </div>
       </div>
       <br>
-      <div style='background-color: yellow;'>
-         <span>Train single letter:</span>
-         <input id="train_single_letter" type="checkbox" checked>
-      </div>
    </body>
 </html>

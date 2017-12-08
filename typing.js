@@ -4,6 +4,16 @@ var correct_press = 0;
 var cur_cursor = 0;
 var word_typing_correct = true;
 var penalty_displayed = false;
+var training_options = {
+   mode: 'all_letters',  // 'user_specified_letters', 'all_letters',
+                         // 'letters_with_space', 'words', 'sentences';
+   user_defined: '',     // Used on if the mode is user_specified_letters.
+   include_num: false,
+   include_sym1: false, // ;:'",<.>/?
+   include_sym2: false, // everything else.
+   include_upper_case: false
+};
+
 function get_combo() {
    var possible = ['of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we',
        'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no',
@@ -23,11 +33,12 @@ function get_combo() {
 }
 
 function get_new_text() {
-   var train_single_letter = document.getElementById('train_single_letter').checked;
-   if (train_single_letter) {
+   if (training_options.mode === 'all_letters') {
       return get_a_char();
-   } else {
+   } else if (training_options.mode === 'words') {
       return get_combo();
+   } else {
+      console.log('Unknow training mode.');
    }
 }
 
@@ -202,7 +213,51 @@ function check_key(evt) {
    verify_key(char_pressed);
 }
 
-function start() {
-   document.addEventListener('keydown', check_key);
+function save_options() {
+   var key, stored_value;
+   for (key in training_options) {
+      if (training_options.hasOwnProperty(key)) {
+         window.localStorage.setItem(key, training_options[key]);
+      }
+   }
 }
 
+function restore_options() {
+   var key, stored_value;
+   for (key in training_options) {
+      if (training_options.hasOwnProperty(key)) {
+         stored_value = window.localStorage.getItem(key);
+         if (stored_value) {
+            training_options[key] = stored_value;
+         }
+      }
+   }
+   var mode_elem = document.getElementById('mode_selection');
+   mode_elem.value = training_options['mode'];
+}
+
+function dump_options() {
+   var key
+   for (key in training_options) {
+      if (training_options.hasOwnProperty(key)) {
+         console.log(key + " -> " + training_options[key]);
+      }
+   }
+}
+
+function on_options_update() {
+   var mode_elem = document.getElementById('mode_selection');
+   training_options.mode = mode_elem.value;
+   save_options();
+}
+
+
+function start() {
+   var mode_elem = document.getElementById('mode_selection');
+
+   restore_options();
+   dump_options();
+   document.addEventListener('keydown', check_key);
+   mode_elem.addEventListener('change', on_options_update);
+   set_new_text(get_new_text());
+}
