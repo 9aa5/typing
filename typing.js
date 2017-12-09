@@ -245,7 +245,7 @@ function sync_options_ui() {
    var mode_dropdown = document.getElementById('mode_selection');
    mode_dropdown.value = training_options['mode'];
    var upper_case_checkbox = document.getElementById('include_upper_case');
-   upper_case_checkbox.checked = training_options['include_upper_case'] === "true";
+   upper_case_checkbox.checked = training_options['include_upper_case'];
 }
 
 function restore_options() {
