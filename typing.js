@@ -112,6 +112,7 @@ function set_new_text(new_text) {
       cur_pos += 1;
    }
    target_box.parentNode.style.width = (150 * new_text.length) + 'px';
+   cur_cursor = 0;
 }
 
 function locate_current_letter_span() {
@@ -168,7 +169,6 @@ function verify_key(char_pressed) {
                set_new_text(new_char);
                elem.classList.add('visible');
             }, 100); // Consistent with the style duration.
-         cur_cursor = 0;
          if (word_typing_correct) {
             display_stats(word_typing_correct);
          }
