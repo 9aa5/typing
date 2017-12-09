@@ -4,6 +4,7 @@ var correct_press = 0;
 var cur_cursor = 0;
 var word_typing_correct = true;
 var penalty_displayed = false;
+var first_key_time = null;
 var training_options = {
    mode: 'single_letter',  // 'user_specified_letters', 'single_letter',
                            // 'random_letters',
@@ -14,6 +15,13 @@ var training_options = {
    include_sym2: false, // everything else.
    include_upper_case: false
 };
+
+function reset_stats() {
+   total_press = 0;
+   correct_press = 0;
+   first_key_time = null;
+   cur_cursor = 0;
+}
 
 function get_combo() {
    var possible = ['of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we',
@@ -90,7 +98,11 @@ function display_stats(is_correct) {
       correct_press += 1;
    }
    percent = Math.round(correct_press / total_press * 100);
-   stats = 'Total: ' + total_press + ', Correct: ' + percent + '%'
+   stats = 'Total: ' + total_press + ', Correct: ' + percent + '%';
+   if (training_options.mode === 'random_letters') {
+      stats += ', WPM: ' + Math.round(
+            total_press * 1000 * 60 / (Date.now() - first_key_time));
+   }
    var elem = document.getElementById('stats');
    elem.textContent = stats;
 }
@@ -229,6 +241,9 @@ function check_key(evt) {
       return;
    }
    console.log('char:' + char_pressed);
+   if (!first_key_time) {
+      first_key_time = Date.now();
+   }
    verify_key(char_pressed);
 }
 
@@ -281,6 +296,7 @@ function on_options_update() {
    training_options['include_upper_case'] = upper_case_checkbox.checked;
    save_options();
    set_new_text(get_new_text());
+   reset_stats();
 }
 
 
