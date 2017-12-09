@@ -65,14 +65,25 @@
    </style>
    <body onload='start()'>
       <div class='options_panel'>
-         <span>Training mode:</span>
-         <select id='mode_selection' name='mode'>
-            <option disabled value="user_specified_letters">Let me specify letters</option>
-            <option value="all_letters">One letter at a time</option>
-            <option disabled value="letters_with_space">One letter with space</option>
-            <option value="words">One word at a time</option>
-            <option disabled value="sentences">One sentence at a time</option>
-         </select>
+         <table>
+            <tr>
+               <td>Training mode:</td>
+               <td>
+                  <select id='mode_selection' name='mode'>
+                     <option disabled value='user_specified_letters'>Let me specify letters</option>
+                     <option value='single_letter'>One letter at a time</option>
+                     <option value='random_letters'>5 random letters at a time</option>
+                     <option disabled value='letters_with_space'>One letter with space</option>
+                     <option value='words'>One word at a time</option>
+                     <option disabled value='sentences'>One sentence at a time</option>
+                  </select>
+               </td>
+            </tr>
+            <tr>
+               <td>Mix upper case:</td>
+               <td><input id='include_upper_case' type='checkbox'></td>
+            </tr>
+         </table>
       </div>
       <div class='container'>
          <div class='textbox'>

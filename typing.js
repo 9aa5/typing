@@ -5,9 +5,10 @@ var cur_cursor = 0;
 var word_typing_correct = true;
 var penalty_displayed = false;
 var training_options = {
-   mode: 'all_letters',  // 'user_specified_letters', 'all_letters',
-                         // 'letters_with_space', 'words', 'sentences';
-   user_defined: '',     // Used on if the mode is user_specified_letters.
+   mode: 'single_letter',  // 'user_specified_letters', 'single_letter',
+                           // 'random_letters',
+                           // 'letters_with_space', 'words', 'sentences';
+   user_defined: '',       // Used on if the mode is user_specified_letters.
    include_num: false,
    include_sym1: false, // ;:'",<.>/?
    include_sym2: false, // everything else.
@@ -17,39 +18,57 @@ var training_options = {
 function get_combo() {
    var possible = ['of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we',
        'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no',
-       'us', 'am'];
+       'us', 'am', 'ox'];
    possible = possible.concat([
          'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any',
          'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has',
          'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way',
-         'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'
+         'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use',
+         'zoo', 'joy'
       ]);
    possible = possible.concat([
          'that', 'with', 'have', 'this', 'will', 'your', 'from', 'they',
-         'know', 'want', 'been', 'good', 'much', 'some', 'time'
+         'know', 'want', 'been', 'good', 'much', 'some', 'time', 'query',
+         'zest'
       ]);
    text = possible[Math.floor(Math.random() * possible.length)];
+   if (training_options.include_upper_case &&
+         Math.floor(Math.random() * 100) < 33) {
+      text = text[0].toUpperCase() + text.slice(1);
+   }
    return text;
 }
 
+function get_a_char() {
+   var text;
+   var possible = "abcdefghijklmnopqrstuvwxyz";
+   possible += "qwertyuiopzxcvbnm"; // Add weight to upper and lower row;
+   possible += "rtyuvbnm"; // add weight to the index finger keys.
+   text = possible.charAt(Math.floor(Math.random() * possible.length));
+   if (training_options.include_upper_case &&
+         Math.floor(Math.random() * 100) < 40) {
+      text = text.toUpperCase();
+   }
+   return text;
+}
+
+function get_random_letters() {
+   var i = 0, text = '';
+   for (i = 0; i < 5; i ++) {
+      text += get_a_char();
+   }
+   return text;
+}
 function get_new_text() {
-   if (training_options.mode === 'all_letters') {
+   if (training_options.mode === 'single_letter') {
       return get_a_char();
    } else if (training_options.mode === 'words') {
       return get_combo();
+   } else if (training_options.mode === 'random_letters') {
+      return get_random_letters();
    } else {
       console.log('Unknow training mode.');
    }
-}
-
-function get_a_char() {
-  var text = "";
-  var possible = "abcdefghijklmnopqrstuvwxyz";
-  possible += "qwertyuiopzxcvbnm"; // Add weight to upper and lower row;
-  possible += "rtyuvbnm"; // add weight to the index finger keys.
-  for (var i = 0; i < 1; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  return text;
 }
 
 function get_on_screen_text() {
@@ -222,18 +241,28 @@ function save_options() {
    }
 }
 
+function sync_options_ui() {
+   var mode_dropdown = document.getElementById('mode_selection');
+   mode_dropdown.value = training_options['mode'];
+   var upper_case_checkbox = document.getElementById('include_upper_case');
+   upper_case_checkbox.checked = training_options['include_upper_case'] === "true";
+}
+
 function restore_options() {
    var key, stored_value;
    for (key in training_options) {
       if (training_options.hasOwnProperty(key)) {
          stored_value = window.localStorage.getItem(key);
          if (stored_value) {
-            training_options[key] = stored_value;
+            if (stored_value === 'true' || stored_value === 'false') {
+               training_options[key] = (stored_value === 'true');
+            } else {
+               training_options[key] = stored_value;
+            }
          }
       }
    }
-   var mode_elem = document.getElementById('mode_selection');
-   mode_elem.value = training_options['mode'];
+   sync_options_ui();
 }
 
 function dump_options() {
@@ -246,18 +275,23 @@ function dump_options() {
 }
 
 function on_options_update() {
-   var mode_elem = document.getElementById('mode_selection');
-   training_options.mode = mode_elem.value;
+   var mode_dropdown = document.getElementById('mode_selection');
+   training_options.mode = mode_dropdown.value;
+   var upper_case_checkbox = document.getElementById('include_upper_case');
+   training_options['include_upper_case'] = upper_case_checkbox.checked;
    save_options();
+   set_new_text(get_new_text());
 }
 
 
 function start() {
-   var mode_elem = document.getElementById('mode_selection');
+   var mode_dropdown = document.getElementById('mode_selection');
+   var upper_case_checkbox = document.getElementById('include_upper_case');
 
    restore_options();
    dump_options();
    document.addEventListener('keydown', check_key);
-   mode_elem.addEventListener('change', on_options_update);
+   mode_dropdown.addEventListener('change', on_options_update);
+   upper_case_checkbox.addEventListener('change', on_options_update);
    set_new_text(get_new_text());
 }
