@@ -291,8 +291,10 @@ function dump_options() {
 
 function on_options_update() {
    var mode_dropdown = document.getElementById('mode_selection');
+   mode_dropdown.blur();
    training_options.mode = mode_dropdown.value;
    var upper_case_checkbox = document.getElementById('include_upper_case');
+   upper_case_checkbox.blur();
    training_options['include_upper_case'] = upper_case_checkbox.checked;
    save_options();
    set_new_text(get_new_text());
