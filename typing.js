@@ -5,7 +5,14 @@ var cur_cursor = 0;
 var word_typing_correct = true;
 var penalty_displayed = false;
 var first_key_time = null;
+var cur_wpm = 0;
 var word_list;
+var idle_timer = null;
+var history_stats = {
+   training_time: 0,
+   wpm: 0
+};
+
 var training_options = {
    mode: 'single_letter',  // 'user_specified_letters', 'single_letter',
                            // 'random_letters',
@@ -17,7 +24,7 @@ var training_options = {
    include_upper_case: false
 };
 
-function reset_stats() {
+function reset_session_stats() {
    total_press = 0;
    correct_press = 0;
    first_key_time = null;
@@ -77,7 +84,7 @@ function get_on_screen_text() {
    return text;
 }
 
-function display_stats(is_correct) {
+function display_session_stats(is_correct) {
    var stats, percent;
    total_press += 1;
    if (is_correct) {
@@ -85,9 +92,10 @@ function display_stats(is_correct) {
    }
    percent = Math.round(correct_press / total_press * 100);
    stats = 'Total: ' + total_press + ', Correct: ' + percent + '%';
-   if (training_options.mode === 'random_letters') {
-      stats += ', WPM: ' + Math.round(
-            total_press * 1000 * 60 / (Date.now() - first_key_time));
+   if (training_options.mode === 'random_letters' ||
+         training_options.mode === 'words') {
+      cur_wpm = Math.round(total_press * 1000 * 60 / (Date.now() - first_key_time));
+      stats += ', WPM: ' + cur_wpm;
    }
    var elem = document.getElementById('stats');
    elem.textContent = stats;
@@ -153,7 +161,7 @@ function verify_key(char_pressed) {
       word_typing_correct = false;
          // Display penalty immediately.
       if (!penalty_displayed) {
-         display_stats(false);
+         display_session_stats(false);
          penalty_displayed = true;
       }
    } else {
@@ -168,7 +176,7 @@ function verify_key(char_pressed) {
                elem.classList.add('visible');
             }, 100); // Consistent with the style duration.
          if (word_typing_correct) {
-            display_stats(word_typing_correct);
+            display_session_stats(word_typing_correct);
          }
          word_typing_correct = true;
          penalty_displayed = false;
@@ -221,11 +229,20 @@ function get_key_char(evt) {
    }
    return char_pressed;
 }
+
+function restart_idle_timer() {
+   if (idle_timer) {
+      clearTimeout(idle_timer);
+   }
+   idle_timer = setTimeout(reset_session, 10000);
+}
+
 function check_key(evt) {
    var char_pressed = get_key_char(evt);
    if (!char_pressed) {
       return;
    }
+   restart_idle_timer();
    console.log('char:' + char_pressed);
    if (!first_key_time) {
       first_key_time = Date.now();
@@ -275,6 +292,61 @@ function dump_options() {
    }
 }
 
+function compute_history_stats() {
+   var time_for_this_session = 0;
+   if (first_key_time) {
+      time_for_this_session = (Date.now() - first_key_time) / 1000;
+   }
+   if (cur_wpm && time_for_this_session) {
+      history_stats.wpm = (history_stats.wpm * history_stats.training_time
+            + cur_wpm * time_for_this_session) / (history_stats.training_time
+               + time_for_this_session);
+      history_stats.wpm = Math.round(history_stats.wpm);
+   }
+   history_stats.training_time += time_for_this_session;
+   history_stats.training_time = Math.round(history_stats.training_time);
+}
+
+function save_history_stats() {
+   compute_history_stats();
+   window.localStorage.setItem('stats_training_time', history_stats.training_time);
+   window.localStorage.setItem('stats_wpm', history_stats.wpm);
+}
+
+function load_history_stats() {
+   var training_time = window.localStorage.getItem('stats_training_time');
+   if (training_time) {
+      history_stats.training_time = parseInt(training_time);
+   }
+   var wpm = window.localStorage.getItem('stats_wpm');
+   if (wpm) {
+      history_stats.wpm = parseInt(wpm);
+   }
+}
+
+function display_history_stats() {
+   var total_time_elem = document.getElementById('stats_total_time');
+   var wpm_elem = document.getElementById('stats_history_wpm');
+   var pad = '00';
+   var hour = Math.floor(history_stats.training_time / 3600);
+   hour = '' + hour;
+   hour = pad.substring(0, pad.length - hour.length) + hour;
+   var minute = Math.floor((history_stats.training_time % 3600) / 60);
+   minute = '' + minute;
+   minute = pad.substring(0, pad.length - minute.length) + minute;
+   var second = history_stats.training_time % 60;
+   second = '' + second;
+   second = pad.substring(0, pad.length - second.length) + second;
+   total_time_elem.textContent = hour + ':' + minute + ':' + second;
+   wpm_elem.textContent = history_stats.wpm;
+}
+
+function reset_session() {
+   save_history_stats();
+   display_history_stats();
+   reset_session_stats();
+}
+
 function on_options_update() {
    var mode_dropdown = document.getElementById('mode_selection');
    mode_dropdown.blur();
@@ -284,7 +356,7 @@ function on_options_update() {
    training_options['include_upper_case'] = upper_case_checkbox.checked;
    save_options();
    set_new_text(get_new_text());
-   reset_stats();
+   reset_session_stats();
 }
 
 function load_words(on_words_loaded) {
@@ -304,6 +376,8 @@ function start() {
    var mode_dropdown = document.getElementById('mode_selection');
    var upper_case_checkbox = document.getElementById('include_upper_case');
 
+   load_history_stats();
+   display_history_stats();
    restore_options();
    dump_options();
    document.addEventListener('keydown', check_key);
