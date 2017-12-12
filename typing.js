@@ -5,6 +5,7 @@ var cur_cursor = 0;
 var word_typing_correct = true;
 var penalty_displayed = false;
 var first_key_time = null;
+var word_list;
 var training_options = {
    mode: 'single_letter',  // 'user_specified_letters', 'single_letter',
                            // 'random_letters',
@@ -24,27 +25,12 @@ function reset_stats() {
 }
 
 function get_combo() {
-   var possible = ['of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we',
-       'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no',
-       'us', 'am', 'ox'];
-   possible = possible.concat([
-         'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any',
-         'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has',
-         'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way',
-         'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use',
-         'zoo', 'joy'
-      ]);
-   possible = possible.concat([
-         'that', 'with', 'have', 'this', 'will', 'your', 'from', 'they',
-         'know', 'want', 'been', 'good', 'much', 'some', 'time', 'query',
-         'zest'
-      ]);
-   text = possible[Math.floor(Math.random() * possible.length)];
+   text = word_list[Math.floor(Math.random() * word_list.length)];
    if (training_options.include_upper_case &&
          Math.floor(Math.random() * 100) < 33) {
       text = text[0].toUpperCase() + text.slice(1);
    }
-   return text;
+   return text.replace(/[\n\r]+/g, '').trim();
 }
 
 function get_a_char() {
@@ -301,6 +287,18 @@ function on_options_update() {
    reset_stats();
 }
 
+function load_words(on_words_loaded) {
+   var xmlHttp = new XMLHttpRequest();
+   xmlHttp.open('GET', 'typing_words.txt', true);
+   xmlHttp.addEventListener('load', function (evt) {
+      console.log('Word list is retrieved.');
+      word_list = evt.target.responseText.split(' ');
+      if (on_words_loaded) {
+         on_words_loaded();
+      }
+   }, false);
+   xmlHttp.send();
+}
 
 function start() {
    var mode_dropdown = document.getElementById('mode_selection');
@@ -312,4 +310,8 @@ function start() {
    mode_dropdown.addEventListener('change', on_options_update);
    upper_case_checkbox.addEventListener('change', on_options_update);
    set_new_text(get_new_text());
+}
+
+function pre_start() {
+   load_words(start);
 }
