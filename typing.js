@@ -1,4 +1,4 @@
-
+var session_timeout_in_seconds= 4;
 var total_press = 0;
 var correct_press = 0;
 var cur_cursor = 0;
@@ -229,7 +229,9 @@ function restart_idle_timer() {
    if (idle_timer) {
       clearTimeout(idle_timer);
    }
-   idle_timer = setTimeout(reset_session, 10000);
+   idle_timer = setTimeout(function () {
+      reset_session(true);
+   }, session_timeout_in_seconds * 1000);
 }
 
 function check_key(evt) {
@@ -287,10 +289,13 @@ function dump_options() {
    }
 }
 
-function compute_history_stats() {
+function compute_history_stats(is_after_timeout) {
    var time_for_this_session = 0;
    if (first_key_time) {
       time_for_this_session = (Date.now() - first_key_time) / 1000;
+      if (is_after_timeout) {
+         time_for_this_session -= session_timeout_in_seconds;
+      }
    }
    if (cur_wpm && time_for_this_session) {
       history_stats.wpm = (history_stats.wpm * history_stats.training_time
@@ -302,8 +307,8 @@ function compute_history_stats() {
    history_stats.training_time = Math.round(history_stats.training_time);
 }
 
-function save_history_stats() {
-   compute_history_stats();
+function save_history_stats(is_after_timeout) {
+   compute_history_stats(is_after_timeout);
    window.localStorage.setItem('stats_training_time', history_stats.training_time);
    window.localStorage.setItem('stats_wpm', history_stats.wpm);
 }
@@ -336,8 +341,8 @@ function display_history_stats() {
    wpm_elem.textContent = history_stats.wpm;
 }
 
-function reset_session() {
-   save_history_stats();
+function reset_session(is_after_timeout) {
+   save_history_stats(is_after_timeout);
    display_history_stats();
    reset_session_stats();
 }
