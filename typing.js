@@ -2,8 +2,6 @@
 var total_press = 0;
 var correct_press = 0;
 var cur_cursor = 0;
-var word_typing_correct = true;
-var penalty_displayed = false;
 var first_key_time = null;
 var cur_wpm = 0;
 var word_list;
@@ -84,17 +82,20 @@ function get_on_screen_text() {
    return text;
 }
 
-function display_session_stats(is_correct) {
-   var stats, percent;
+function update_session_stats(key_is_correct) {
    total_press += 1;
-   if (is_correct) {
+   if (key_is_correct) {
       correct_press += 1;
    }
+}
+
+function display_session_stats(is_correct) {
+   var stats, percent;
    percent = Math.round(correct_press / total_press * 100);
    stats = 'Total: ' + total_press + ', Correct: ' + percent + '%';
    if (training_options.mode === 'random_letters' ||
          training_options.mode === 'words') {
-      cur_wpm = Math.round(total_press * 1000 * 60 / (Date.now() - first_key_time));
+      cur_wpm = Math.round(total_press * 1000 * 60 / (Date.now() - first_key_time) / 5);
       stats += ', WPM: ' + cur_wpm;
    }
    var elem = document.getElementById('stats');
@@ -157,29 +158,23 @@ function verify_key(char_pressed) {
    var on_screen = get_on_screen_text();
    console.log('onscreen:' + on_screen);
    if (char_pressed !== on_screen[cur_cursor]) {
+      update_session_stats(false);
       display_miss_effect();
-      word_typing_correct = false;
-         // Display penalty immediately.
-      if (!penalty_displayed) {
-         display_session_stats(false);
-         penalty_displayed = true;
-      }
    } else {
+      if (char_pressed !== ' ') {
+         update_session_stats(true);
+      }
       display_hit_effect();
       cur_cursor += 1;
       if (cur_cursor >= on_screen.length) {
          elem.classList.add('hidden');
-            setTimeout(function () {
-               var new_char = get_new_text();
-               elem.classList.remove('hidden');
-               set_new_text(new_char);
-               elem.classList.add('visible');
-            }, 100); // Consistent with the style duration.
-         if (word_typing_correct) {
-            display_session_stats(word_typing_correct);
-         }
-         word_typing_correct = true;
-         penalty_displayed = false;
+         setTimeout(function () {
+            var new_char = get_new_text();
+            elem.classList.remove('hidden');
+            set_new_text(new_char);
+            elem.classList.add('visible');
+         }, 100); // Consistent with the style duration.
+         display_session_stats();
       }
    }
 }
