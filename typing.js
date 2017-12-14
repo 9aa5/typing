@@ -1,4 +1,4 @@
-var session_timeout_in_seconds= 4;
+var session_timeout_in_seconds= 5;
 var total_press = 0;
 var correct_press = 0;
 var cur_cursor = 0;
@@ -87,6 +87,11 @@ function update_session_stats(key_is_correct) {
    if (key_is_correct) {
       correct_press += 1;
    }
+}
+
+function init_session_stats_display() {
+   var elem = document.getElementById('stats');
+   elem.textContent = 'Starting new training session...';
 }
 
 function display_session_stats(is_correct) {
@@ -345,6 +350,8 @@ function reset_session(is_after_timeout) {
    save_history_stats(is_after_timeout);
    display_history_stats();
    reset_session_stats();
+   set_new_text(get_new_text());
+   init_session_stats_display();
 }
 
 function on_options_update() {
@@ -355,8 +362,9 @@ function on_options_update() {
    upper_case_checkbox.blur();
    training_options['include_upper_case'] = upper_case_checkbox.checked;
    save_options();
-   set_new_text(get_new_text());
    reset_session_stats();
+   set_new_text(get_new_text());
+   init_session_stats_display();
 }
 
 function load_words(on_words_loaded) {
@@ -384,6 +392,7 @@ function start() {
    mode_dropdown.addEventListener('change', on_options_update);
    upper_case_checkbox.addEventListener('change', on_options_update);
    set_new_text(get_new_text());
+   init_session_stats_display();
 }
 
 function pre_start() {
