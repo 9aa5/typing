@@ -19,7 +19,8 @@ var training_options = {
    include_num: false,
    include_sym1: false, // ;:'",<.>/?
    include_sym2: false, // everything else.
-   include_upper_case: false
+   include_upper_case: false,
+   background_url: 'typing.jpg'
 };
 
 function reset_session_stats() {
@@ -263,9 +264,14 @@ function save_options() {
 
 function sync_options_ui() {
    var mode_dropdown = document.getElementById('mode_selection');
-   mode_dropdown.value = training_options['mode'];
+   var background_url_elem;
+   mode_dropdown.value = training_options.mode;
    var upper_case_checkbox = document.getElementById('include_upper_case');
-   upper_case_checkbox.checked = training_options['include_upper_case'];
+   upper_case_checkbox.checked = training_options.include_upper_case;
+   if (training_options.background_url) {
+      background_url_elem = document.getElementById('background_url');
+      background_url_elem.value = training_options.background_url;
+   }
 }
 
 function restore_options() {
@@ -283,6 +289,8 @@ function restore_options() {
       }
    }
    sync_options_ui();
+   document.documentElement.style.backgroundImage =
+      'url(' + training_options.background_url + ')';
 }
 
 function dump_options() {
@@ -354,17 +362,39 @@ function reset_session(is_after_timeout) {
    init_session_stats_display();
 }
 
-function on_options_update() {
+function on_options_update(evt) {
    var mode_dropdown = document.getElementById('mode_selection');
-   mode_dropdown.blur();
-   training_options.mode = mode_dropdown.value;
    var upper_case_checkbox = document.getElementById('include_upper_case');
-   upper_case_checkbox.blur();
-   training_options['include_upper_case'] = upper_case_checkbox.checked;
+   var background_url_elem = document.getElementById('background_url');
+   var need_to_reset_session = false;
+   switch (evt.target) {
+   case mode_dropdown:
+      training_options.mode = mode_dropdown.value;
+      need_to_reset_session = true;
+      break;
+   case upper_case_checkbox:
+      training_options.include_upper_case = upper_case_checkbox.checked;
+      need_to_reset_session = true;
+      break;
+   case background_url_elem:
+      training_options.background_url = background_url_elem.value;
+      if (!training_options.background_url) {
+         training_options.background_url = 'typing.jpg';
+      }
+      document.documentElement.style.backgroundImage =
+         'url(' + training_options.background_url + ')';
+      break;
+   default:
+      break;
+   }
+   evt.target.blur();
+   // or document.activeElement.blur();
    save_options();
-   reset_session_stats();
-   set_new_text(get_new_text());
-   init_session_stats_display();
+   if (need_to_reset_session) {
+      reset_session_stats();
+      set_new_text(get_new_text());
+      init_session_stats_display();
+   }
 }
 
 function load_words(on_words_loaded) {
@@ -383,6 +413,7 @@ function load_words(on_words_loaded) {
 function start() {
    var mode_dropdown = document.getElementById('mode_selection');
    var upper_case_checkbox = document.getElementById('include_upper_case');
+   var background_url_elem = document.getElementById('background_url');
 
    load_history_stats();
    display_history_stats();
@@ -391,6 +422,7 @@ function start() {
    document.addEventListener('keydown', check_key);
    mode_dropdown.addEventListener('change', on_options_update);
    upper_case_checkbox.addEventListener('change', on_options_update);
+   background_url_elem.addEventListener('change', on_options_update);
    set_new_text(get_new_text());
    init_session_stats_display();
 }
