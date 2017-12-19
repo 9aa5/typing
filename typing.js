@@ -59,7 +59,7 @@ function get_a_char() {
 
 function char_lr_side_on_kb(c) {
    var left='qwertasdfgzxcvb12345~!@#$%';
-   if (left.indexOf(c) !== -1) {
+   if (left.indexOf(c.toLowerCase()) !== -1) {
       return 'left';
    } else {
       return 'right';
