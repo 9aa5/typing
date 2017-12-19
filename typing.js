@@ -1,3 +1,4 @@
+var space_char = '\u2423';
 var session_timeout_in_seconds= 5;
 var total_press = 0;
 var correct_press = 0;
@@ -22,7 +23,7 @@ var training_options = {
    include_sym1: false, // ;:'",<.>/?
    include_sym2: false, // everything else.
    include_upper_case: false,
-   include_space: false,
+   include_space: true,
    background_url: 'typing.jpg'
 };
 
@@ -37,7 +38,7 @@ function reset_session_stats() {
 function get_combo() {
    text = word_list[Math.floor(Math.random() * word_list.length)];
    if (training_options.include_upper_case &&
-         Math.floor(Math.random() * 100) < 33) {
+         Math.floor(Math.random() * 100) < 66) {
       text = text[0].toUpperCase() + text.slice(1);
    }
    return text.replace(/[\n\r]+/g, '').trim();
@@ -53,10 +54,47 @@ function get_a_char() {
          Math.floor(Math.random() * 100) < 40) {
       text = text.toUpperCase();
    }
-   if (training_options.include_space) {
-      text = text + '\u2420';
-   }
    return text;
+}
+
+function char_lr_side_on_kb(c) {
+   var left='qwertasdfgzxcvb12345~!@#$%';
+   if (left.indexOf(c) !== -1) {
+      return 'left';
+   } else {
+      return 'right';
+   }
+}
+
+function show_lr_indicator(prev_c) {
+   var side = char_lr_side_on_kb(prev_c);
+   var right_indicator = document.getElementById('right_indicator');
+   var left_indicator = document.getElementById('left_indicator');
+   if (side === 'right') {
+      right_indicator.style.display = 'none';
+      left_indicator.style.display = 'inherit';
+   } else if (side === 'left') {
+      left_indicator.style.display = 'none';
+      right_indicator.style.display = 'inherit';
+   }
+}
+
+function hide_lr_indicator() {
+   var right_indicator = document.getElementById('right_indicator');
+   var left_indicator = document.getElementById('left_indicator');
+   left_indicator.style.display = 'none';
+   right_indicator.style.display = 'none';
+}
+
+function update_lr_indicator() {
+   var prev_char;
+   var elem = document.getElementById('target_box');
+   var on_screen = get_on_screen_text();
+   if (on_screen[cur_cursor] === space_char) {
+      prev_char = (cur_cursor >= 1? on_screen[cur_cursor-1]:'a');
+      return show_lr_indicator(prev_char);
+   }
+   hide_lr_indicator();
 }
 
 function get_random_letters() {
@@ -67,15 +105,22 @@ function get_random_letters() {
    return text;
 }
 function get_new_text() {
+   var result, split_at;
    if (training_options.mode === 'single_letter') {
-      return get_a_char();
+      result = get_a_char();
    } else if (training_options.mode === 'words') {
-      return get_combo();
+      result = get_combo();
    } else if (training_options.mode === 'random_letters') {
-      return get_random_letters();
+      result = get_random_letters();
    } else {
       console.log('Unknow training mode.');
    }
+   if (training_options.include_space) {
+      split_at = Math.floor(Math.random() * result.length);
+      result = result.substring(0, split_at + 1) + space_char +
+         result.substring(split_at + 1);
+   }
+   return result;
 }
 
 function get_on_screen_text() {
@@ -131,8 +176,9 @@ function set_new_text(new_text) {
       target_box.appendChild(letter_box);
       cur_pos += 1;
    }
-   target_box.parentNode.style.width = (150 * new_text.length) + 'px';
+   target_box.parentNode.style.width = ((60 * new_text.length) + 20) + 'px';
    cur_cursor = 0;
+   update_lr_indicator();
 }
 
 function locate_current_letter_span() {
@@ -216,7 +262,7 @@ function get_key_char(evt) {
       return;
    }
    if (evt.keyCode === 32) {
-      char_pressed = ' ';
+      char_pressed = space_char;
    } else if (evt.keyCode >= 65 && evt.keyCode <= 90) { // A-Z
       char_pressed = String.fromCharCode(evt.keyCode);
       if (!evt.shiftKey) {
@@ -258,6 +304,7 @@ function check_key(evt) {
       first_key_time = Date.now();
    }
    verify_key(char_pressed);
+   update_lr_indicator();
 }
 
 function save_options() {
@@ -275,6 +322,8 @@ function sync_options_ui() {
    mode_dropdown.value = training_options.mode;
    var upper_case_checkbox = document.getElementById('include_upper_case');
    upper_case_checkbox.checked = training_options.include_upper_case;
+   var space_checkbox = document.getElementById('include_space');
+   space_checkbox.checked = training_options.include_space;
    if (training_options.background_url) {
       background_url_elem = document.getElementById('background_url');
       background_url_elem.value = training_options.background_url;
@@ -397,6 +446,7 @@ function reset_session(is_after_timeout) {
 function on_options_update(evt) {
    var mode_dropdown = document.getElementById('mode_selection');
    var upper_case_checkbox = document.getElementById('include_upper_case');
+   var space_checkbox = document.getElementById('include_space');
    var background_url_elem = document.getElementById('background_url');
    var need_to_reset_session = false;
    switch (evt.target) {
@@ -406,6 +456,10 @@ function on_options_update(evt) {
       break;
    case upper_case_checkbox:
       training_options.include_upper_case = upper_case_checkbox.checked;
+      need_to_reset_session = true;
+      break;
+   case space_checkbox:
+      training_options.include_space = space_checkbox.checked;
       need_to_reset_session = true;
       break;
    case background_url_elem:
@@ -445,6 +499,7 @@ function load_words(on_words_loaded) {
 function start() {
    var mode_dropdown = document.getElementById('mode_selection');
    var upper_case_checkbox = document.getElementById('include_upper_case');
+   var space_checkbox = document.getElementById('include_space');
    var background_url_elem = document.getElementById('background_url');
 
    load_history_stats();
@@ -454,6 +509,7 @@ function start() {
    document.addEventListener('keydown', check_key);
    mode_dropdown.addEventListener('change', on_options_update);
    upper_case_checkbox.addEventListener('change', on_options_update);
+   space_checkbox.addEventListener('change', on_options_update);
    background_url_elem.addEventListener('change', on_options_update);
    set_new_text(get_new_text());
    init_session_stats_display();
