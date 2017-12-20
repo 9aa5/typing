@@ -14,11 +14,14 @@ var history_stats = {
 };
 var stats_rolling_period = 600;  // Last 10 minutes stats
 
+var option_checkboxes = ['include_upper_case', 'include_space', 'include_num',
+    'include_sym1', 'include_sym2'];
+var option_inputboxes = ['user_specified_letters', 'background_url'];
 var training_options = {
    mode: 'single_letter',  // 'user_specified_letters', 'single_letter',
                            // 'random_letters',
-                           // 'letters_with_space', 'words', 'sentences';
-   user_defined: '',       // Used on if the mode is user_specified_letters.
+                           // 'words', 'sentences';
+   user_specified_letters: '',       // Used on if the mode is user_specified_letters.
    include_num: false,
    include_sym1: false, // ;:'",<.>/?
    include_sym2: false, // everything else.
@@ -55,6 +58,32 @@ function get_a_char() {
       text = text.toUpperCase();
    }
    return text;
+}
+
+function get_a_user_specified_letter() {
+   var possible = training_options.user_specified_letters;
+   if (!possible.length) {
+      return get_a_char();
+   } else {
+      return possible.charAt(Math.floor(Math.random() * possible.length));
+   }
+}
+
+function get_a_sym1() {
+   var possible = ';:\'\",<.>/?';
+   return possible.charAt(Math.floor(Math.random() * possible.length));
+}
+
+function get_a_sym2() {
+   var text;
+   var possible = ';:\'\",<.>/?[]\\{}|~!@#$%^&*()_+`-=';
+   return possible.charAt(Math.floor(Math.random() * possible.length));
+}
+
+function get_a_digit() {
+   var text;
+   var possible = '0123456789';
+   return possible.charAt(Math.floor(Math.random() * possible.length));
 }
 
 function char_lr_side_on_kb(c) {
@@ -104,16 +133,35 @@ function get_random_letters() {
    }
    return text;
 }
+
 function get_new_text() {
    var result, split_at;
-   if (training_options.mode === 'single_letter') {
+   if (training_options.mode === 'user_specified_letters') {
+      result = get_a_user_specified_letter();
+   } else if (training_options.mode === 'single_letter') {
       result = get_a_char();
+   } else if (training_options.mode === 'single_digit') {
+      result = get_a_digit();
    } else if (training_options.mode === 'words') {
       result = get_combo();
    } else if (training_options.mode === 'random_letters') {
       result = get_random_letters();
    } else {
       console.log('Unknow training mode.');
+   }
+   if (training_options.include_num) {
+      split_at = Math.floor(Math.random() * result.length);
+      result = result.substring(0, split_at + 1) + get_a_digit() +
+         result.substring(split_at + 1);
+   }
+   if (training_options.include_sym2) {
+      split_at = Math.floor(Math.random() * result.length);
+      result = result.substring(0, split_at + 1) + get_a_sym2() +
+         result.substring(split_at + 1);
+   } else if (training_options.include_sym1) {
+      split_at = Math.floor(Math.random() * result.length);
+      result = result.substring(0, split_at + 1) + get_a_sym1() +
+         result.substring(split_at + 1);
    }
    if (training_options.include_space) {
       split_at = Math.floor(Math.random() * result.length);
@@ -316,17 +364,20 @@ function save_options() {
    }
 }
 
-function sync_options_ui() {
+function sync_options_to_ui() {
    var mode_dropdown = document.getElementById('mode_selection');
-   var background_url_elem;
+   var i = 0;
+   var checkbox_elem, input_elem;
    mode_dropdown.value = training_options.mode;
-   var upper_case_checkbox = document.getElementById('include_upper_case');
-   upper_case_checkbox.checked = training_options.include_upper_case;
-   var space_checkbox = document.getElementById('include_space');
-   space_checkbox.checked = training_options.include_space;
-   if (training_options.background_url) {
-      background_url_elem = document.getElementById('background_url');
-      background_url_elem.value = training_options.background_url;
+   for (i = 0; i < option_inputboxes.length; i ++) {
+      if (training_options[option_inputboxes[i]]) {
+         input_elem = document.getElementById(option_inputboxes[i]);
+         input_elem.value = training_options[option_inputboxes[i]];
+      }
+   }
+   for (i = 0; i < option_checkboxes.length; i ++) {
+      checkbox_elem = document.getElementById(option_checkboxes[i]);
+      checkbox_elem.checked = training_options[option_checkboxes[i]];
    }
 }
 
@@ -344,7 +395,7 @@ function restore_options() {
          }
       }
    }
-   sync_options_ui();
+   sync_options_to_ui();
    document.documentElement.style.backgroundImage =
       'url(' + training_options.background_url + ')';
 }
@@ -445,21 +496,18 @@ function reset_session(is_after_timeout) {
 
 function on_options_update(evt) {
    var mode_dropdown = document.getElementById('mode_selection');
-   var upper_case_checkbox = document.getElementById('include_upper_case');
-   var space_checkbox = document.getElementById('include_space');
    var background_url_elem = document.getElementById('background_url');
+   var user_letters_elem = document.getElementById('user_specified_letters');
    var need_to_reset_session = false;
+   var i = 0;
+   var checkbox_elems = [];
+   var index;
+   for (i = 0; i < option_checkboxes.length; i ++) {
+      checkbox_elems.push(document.getElementById(option_checkboxes[i]));
+   }
    switch (evt.target) {
    case mode_dropdown:
       training_options.mode = mode_dropdown.value;
-      need_to_reset_session = true;
-      break;
-   case upper_case_checkbox:
-      training_options.include_upper_case = upper_case_checkbox.checked;
-      need_to_reset_session = true;
-      break;
-   case space_checkbox:
-      training_options.include_space = space_checkbox.checked;
       need_to_reset_session = true;
       break;
    case background_url_elem:
@@ -470,7 +518,16 @@ function on_options_update(evt) {
       document.documentElement.style.backgroundImage =
          'url(' + training_options.background_url + ')';
       break;
+   case user_letters_elem:
+      training_options.user_specified_letters = user_letters_elem.value;
+      need_to_reset_session = true;
+      break;
    default:
+      index = checkbox_elems.indexOf(evt.target);
+      if (index !== -1) {
+         training_options[option_checkboxes[index]] = evt.target.checked;
+         need_to_reset_session = true;
+      }
       break;
    }
    evt.target.blur();
@@ -498,9 +555,7 @@ function load_words(on_words_loaded) {
 
 function start() {
    var mode_dropdown = document.getElementById('mode_selection');
-   var upper_case_checkbox = document.getElementById('include_upper_case');
-   var space_checkbox = document.getElementById('include_space');
-   var background_url_elem = document.getElementById('background_url');
+   var checkbox_elem, input_elem;
 
    load_history_stats();
    display_history_stats();
@@ -508,9 +563,14 @@ function start() {
    dump_options();
    document.addEventListener('keydown', check_key);
    mode_dropdown.addEventListener('change', on_options_update);
-   upper_case_checkbox.addEventListener('change', on_options_update);
-   space_checkbox.addEventListener('change', on_options_update);
-   background_url_elem.addEventListener('change', on_options_update);
+   for (i = 0; i < option_inputboxes.length; i ++) {
+      input_elem = document.getElementById(option_inputboxes[i]);
+      input_elem.addEventListener('change', on_options_update);
+   }
+   for (i = 0; i < option_checkboxes.length; i ++) {
+      checkbox_elem = document.getElementById(option_checkboxes[i]);
+      checkbox_elem.addEventListener('change', on_options_update);
+   }
    set_new_text(get_new_text());
    init_session_stats_display();
 }

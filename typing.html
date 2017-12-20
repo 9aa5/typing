@@ -73,14 +73,14 @@
          float: left;
          left: 10px;
          top: 20px;
-         width: 400px;
+         width: 420px;
       }
       .stats_panel {
          background-color: white;
          float: right;
          left: 10px;
          top: 20px;
-         width: 400px;
+         width: 350px;
       }
       .split_space_key {
          height:15px;
@@ -115,10 +115,10 @@
                   <td>Training mode:</td>
                   <td>
                      <select id='mode_selection' name='mode'>
-                        <option disabled value='user_specified_letters'>Let me specify letters</option>
+                        <option value='user_specified_letters'>Let me specify letters</option>
                         <option value='single_letter'>One letter at a time</option>
+                        <option value='single_digit'>One digit at a time</option>
                         <option value='random_letters'>5 random letters at a time</option>
-                        <option disabled value='letters_with_space'>One letter with space</option>
                         <option value='words'>One word at a time</option>
                         <option disabled value='sentences'>One sentence at a time</option>
                      </select>
@@ -131,6 +131,22 @@
                <tr>
                   <td>Include space:</td>
                   <td><input id='include_space' type='checkbox'></td>
+               </tr>
+               <tr>
+                  <td>Include numbers</td>
+                  <td><input id='include_num' type='checkbox'></td>
+               </tr>
+               <tr>
+                  <td>Include <small>: ; : ' &quot; , &lt; . &gt; / ?</small></td>
+                  <td><input id='include_sym1' type='checkbox'></td>
+               </tr>
+               <tr>
+                  <td>Include all symbols</td>
+                  <td><input id='include_sym2' type='checkbox'></td>
+               </tr>
+               <tr>
+                  <td>Let me specify letters:</td>
+                  <td><input id='user_specified_letters' type='input' size='35'></td>
                </tr>
                <tr>
                   <td>Background url:</td>
