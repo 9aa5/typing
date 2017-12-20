@@ -248,7 +248,7 @@ function set_new_text(new_text) {
       target_box.appendChild(letter_box);
       cur_pos += 1;
    }
-   target_box.parentNode.style.width = ((60 * new_text.length) + 20) + 'px';
+   target_box.parentNode.style.width = ((60 * new_text.length) + 40) + 'px';
    cur_cursor = 0;
    update_lr_indicator();
 }
