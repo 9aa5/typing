@@ -7,6 +7,8 @@ var first_key_time = null;
 var cur_wpm = 0;
 var cur_accuracy = 0; // cur_accuracy / 100 is the percentage value.
 var word_list;
+var paragraphs;
+var paragraphs_current_pointer = 0;
 var idle_timer = null;
 var history_stats = {
    training_time: 0,
@@ -134,6 +136,23 @@ function get_random_letters() {
    return text;
 }
 
+function get_next_sentence() {
+   var start = paragraphs_current_pointer;
+   var end = paragraphs_current_pointer + 24;
+   
+   while (paragraphs[end] !== space_char && end > 8) {
+      end = end -1;
+   }
+   paragraphs_current_pointer = end;
+   if (paragraphs[paragraphs_current_pointer] === space_char) {
+      paragraphs_current_pointer += 1;
+   }
+   if (paragraphs_current_pointer >= paragraphs.length) {
+      paragraphs_current_pointer = 0;
+   }
+   return paragraphs.substring(start, end);
+}
+
 function get_new_text() {
    var result, split_at;
    if (training_options.mode === 'user_specified_letters') {
@@ -146,8 +165,13 @@ function get_new_text() {
       result = get_combo();
    } else if (training_options.mode === 'random_letters') {
       result = get_random_letters();
+   } else if (training_options.mode === 'sentences') {
+      result = get_next_sentence();
    } else {
       console.log('Unknow training mode.');
+   }
+   if (training_options.mode === 'sentences') {
+      return result;
    }
    if (training_options.include_num) {
       split_at = Math.floor(Math.random() * result.length);
@@ -540,15 +564,27 @@ function on_options_update(evt) {
    }
 }
 
-function load_words(on_words_loaded) {
+function load_paragraphs(on_loaded) {
+   var xmlHttp = new XMLHttpRequest();
+   xmlHttp.open('GET', 'typing_paragraph.txt', true);
+   xmlHttp.addEventListener('load', function (evt) {
+      console.log('Paragraphs are retrieved.');
+      paragraphs = evt.target.responseText;
+      paragraphs = paragraphs.replace(/\s+/g, space_char); 
+      if (on_loaded) {
+         on_loaded();
+      }
+   }, false);
+   xmlHttp.send();
+}
+
+function load_words(on_loaded) {
    var xmlHttp = new XMLHttpRequest();
    xmlHttp.open('GET', 'typing_words.txt', true);
    xmlHttp.addEventListener('load', function (evt) {
       console.log('Word list is retrieved.');
       word_list = evt.target.responseText.split(' ');
-      if (on_words_loaded) {
-         on_words_loaded();
-      }
+      load_paragraphs(on_loaded);
    }, false);
    xmlHttp.send();
 }
