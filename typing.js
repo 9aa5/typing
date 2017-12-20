@@ -64,6 +64,8 @@ function get_a_char() {
 
 function get_a_user_specified_letter() {
    var possible = training_options.user_specified_letters;
+   possible = possible.replace(/\s+/g, space_char); 
+
    if (!possible.length) {
       return get_a_char();
    } else {
@@ -390,6 +392,7 @@ function save_options() {
 
 function sync_options_to_ui() {
    var mode_dropdown = document.getElementById('mode_selection');
+   var user_letters_elem = document.getElementById('user_specified_letters');
    var i = 0;
    var checkbox_elem, input_elem;
    mode_dropdown.value = training_options.mode;
@@ -402,6 +405,11 @@ function sync_options_to_ui() {
    for (i = 0; i < option_checkboxes.length; i ++) {
       checkbox_elem = document.getElementById(option_checkboxes[i]);
       checkbox_elem.checked = training_options[option_checkboxes[i]];
+   }
+   if (training_options.mode !== 'user_specified_letters') {
+      user_letters_elem.setAttribute('disabled', 'disabled');
+   } else {
+      user_letters_elem.removeAttribute('disabled');
    }
 }
 
@@ -553,6 +561,11 @@ function on_options_update(evt) {
          need_to_reset_session = true;
       }
       break;
+   }
+   if (training_options.mode !== 'user_specified_letters') {
+      user_letters_elem.setAttribute('disabled', 'disabled');
+   } else {
+      user_letters_elem.removeAttribute('disabled');
    }
    evt.target.blur();
    // or document.activeElement.blur();
