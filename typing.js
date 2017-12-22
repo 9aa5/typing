@@ -226,7 +226,8 @@ function display_session_stats(is_correct) {
    cur_accuracy = Math.round(correct_press * 100 / total_press);
    stats = 'Total: ' + total_press + ', Correct: ' + cur_accuracy + '%';
    if (training_options.mode === 'random_letters' ||
-         training_options.mode === 'words') {
+         training_options.mode === 'words' ||
+         training_options.mode === 'sentences') {
       cur_wpm = Math.round(total_press * 1000 * 60 / (Date.now() - first_key_time) / 5);
       stats += ', WPM: ' + cur_wpm;
    }
