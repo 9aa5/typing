@@ -80,7 +80,7 @@ function get_a_sym1() {
 
 function get_a_sym2() {
    var text;
-   var possible = ';:\'\",<.>/?[]\\{}|~!@#$%^&*()_+`-=';
+   var possible = ';:\'\",<.>/?[]\\{}|~!@#$%^&*()_+`~-=';
    return possible.charAt(Math.floor(Math.random() * possible.length));
 }
 
