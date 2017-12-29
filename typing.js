@@ -8,11 +8,11 @@ var cur_wpm = 0;
 var cur_accuracy = 0; // cur_accuracy / 100 is the percentage value.
 var word_list;
 var paragraphs;
-var paragraphs_current_pointer = 0;
 var idle_timer = null;
 var history_stats = {
    training_time: 0,
-   wpm: 0
+   wpm: 0,
+   paragraphs_current_pointer: 0
 };
 var stats_rolling_period = 600;  // Last 10 minutes stats
 
@@ -139,19 +139,22 @@ function get_random_letters() {
 }
 
 function get_next_sentence() {
-   var start = paragraphs_current_pointer;
-   var end = paragraphs_current_pointer + 24;
+   var p_cur_pointer = history_stats.paragraphs_current_pointer;
+   var start = p_cur_pointer;
+   var end = p_cur_pointer + 24;
    
    while (paragraphs[end] !== space_char && end > 8) {
       end = end -1;
    }
-   paragraphs_current_pointer = end;
-   if (paragraphs[paragraphs_current_pointer] === space_char) {
-      paragraphs_current_pointer += 1;
+   p_cur_pointer = end;
+   while (paragraphs[p_cur_pointer] === space_char
+         && p_cur_pointer < paragraphs.length) {
+      p_cur_pointer += 1;
    }
-   if (paragraphs_current_pointer >= paragraphs.length) {
-      paragraphs_current_pointer = 0;
+   if (p_cur_pointer >= paragraphs.length) {
+      p_cur_pointer = 0;
    }
+   history_stats.paragraphs_current_pointer = p_cur_pointer;
    return paragraphs.substring(start, end);
 }
 
@@ -478,6 +481,7 @@ function save_history_stats(is_after_timeout) {
    window.localStorage.setItem('stats_training_time', history_stats.training_time);
    window.localStorage.setItem('stats_wpm', history_stats.wpm);
    window.localStorage.setItem('stats_accuracy', history_stats.accuracy);
+   window.localStorage.setItem('paragraphs_current_pointer', history_stats.paragraphs_current_pointer);
    console.log('saving stats:', 'stats_wpm', history_stats.wpm, 'stats_accuracy', history_stats.accuracy);
 }
 
@@ -497,6 +501,12 @@ function load_history_stats() {
       history_stats.accuracy = parseInt(accuracy);
    } else {
       history_stats.accuracy = 80;
+   }
+   var p_cur_pointer = window.localStorage.getItem('paragraphs_current_pointer');
+   if (p_cur_pointer) {
+      history_stats.paragraphs_current_pointer = parseInt(p_cur_pointer);
+   } else {
+      history_stats.paragraphs_current_pointer = 677;
    }
 }
 
